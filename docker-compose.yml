@@ -1,0 +1,46 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: weather_rabbitmq
+    ports:
+      - "5672:5672"   # Puerto para la app
+      - "15672:15672" # Puerto para el dashboard
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:13
+    container_name: weather_postgres
+    environment:
+      POSTGRES_DB: weather_logs
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  producer:
+    build: ./producer
+    container_name: weather_producer
+    depends_on:
+      - rabbitmq
+    restart: unless-stopped
+
+  consumer:
+    build: ./consumer
+    container_name: weather_consumer
+    depends_on:
+      - rabbitmq
+      - postgres
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:
+  postgres_data:
