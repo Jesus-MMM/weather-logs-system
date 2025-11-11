@@ -48,23 +48,32 @@ class ValidadorDatosMeteorologicos:
     
     @staticmethod
     def validar_temperatura(temperatura):
-        return -50 <= temperatura <= 60
+        result = -50 <= temperatura <= 60
+        logger.debug(f"Validador: validar_temperatura(temperatura={temperatura}) -> {result}")
+        return result
     
     @staticmethod
     def validar_humedad(humedad):
-        return 0 <= humedad <= 100
+        result = 0 <= humedad <= 100
+        logger.debug(f"Validador: validar_humedad(humedad={humedad}) -> {result}")
+        return result
     
     @staticmethod
     def validar_presion(presion):
-        return 800 <= presion <= 1100
+        result = 800 <= presion <= 1100
+        logger.debug(f"Validador: validar_presion(presion={presion}) -> {result}")
+        return result
     
     @staticmethod
     def validar_velocidad_viento(velocidad):
-        return 0 <= velocidad <= 200
+        result = 0 <= velocidad <= 200
+        logger.debug(f"Validador: validar_velocidad_viento(velocidad={velocidad}) -> {result}")
+        return result
     
     @staticmethod
     def validar_datos_completos(datos : dict):
         """Validar todos los campos del mensaje"""
+        logger.debug(f"Validador: iniciar validar_datos_completos para id_mensaje={datos.get('id_mensaje', 'N/A')} datos_keys={list(datos.keys())}")
         errores = []
         
         # Campos requeridos
@@ -83,7 +92,12 @@ class ValidadorDatosMeteorologicos:
         if datos.get('velocidad_viento') is not None and not ValidadorDatosMeteorologicos.validar_velocidad_viento(datos['velocidad_viento']):
             errores.append(f"Velocidad viento fuera de rango: {datos['velocidad_viento']}")
         
-        return len(errores) == 0, errores
+        ok = len(errores) == 0
+        if ok:
+            logger.debug(f"Validador: datos válidos para id_mensaje={datos.get('id_mensaje','N/A')}")
+        else:
+            logger.info(f"Validador: datos inválidos para id_mensaje={datos.get('id_mensaje','N/A')}: {errores}")
+        return ok, errores
 
 class ConsumerMeteorologico:
     def __init__(self):
@@ -111,6 +125,11 @@ class ConsumerMeteorologico:
         self.routing_key = 'datos.meteorologicos'
         
         self.validador = ValidadorDatosMeteorologicos()
+        # Nuevo log de inicialización (sin exponer contraseñas)
+        try:
+            logger.info(f"Inicializando ConsumerMeteorologico - rabbitmq={self.rabbitmq_host}:{self.rabbitmq_port} user={self.rabbitmq_user}, postgres={self.db_host}:{self.db_port} db={self.db_name} user={self.db_user}")
+        except Exception:
+            logger.debug("Inicializando ConsumerMeteorologico (no se pudieron leer detalles de configuración)")
 
     def conectar_rabbitmq(self):
         """Establecer conexión con RabbitMQ"""
@@ -240,6 +259,7 @@ class ConsumerMeteorologico:
 
     def persistir_datos(self, datos):
         """Persistir datos validados en PostgreSQL"""
+        logger.debug(f"Persistir: iniciando persistencia para id_mensaje={datos.get('id_mensaje','N/A')} id_estacion={datos.get('id_estacion')}")
         try:
             with self.connection_db.cursor() as cursor:
                 # Determinar calidad del dato
@@ -282,15 +302,18 @@ class ConsumerMeteorologico:
                 ])
                 
                 self.connection_db.commit()
+                logger.debug(f"Persistir: commit exitoso para id_mensaje={datos.get('id_mensaje','N/A')}")
                 return True
                 
         except Exception as e:
-            logger.error(f"Error en persistencia PostgreSQL: {e}")
+            logger.error(f"Error en persistencia PostgreSQL para id_mensaje={datos.get('id_mensaje','N/A')}: {e}")
             self.connection_db.rollback()
+            logger.debug("Persistir: rollback ejecutado")
             return False
 
     def guardar_datos_invalidos(self, datos, errores):
         """Guardar datos inválidos para análisis"""
+        logger.debug(f"GuardarInvalidos: iniciando para id_mensaje={datos.get('id_mensaje','N/A')} errores_count={len(errores)}")
         try:
             with self.connection_db.cursor() as cursor:
                 query = sql.SQL("""
@@ -325,7 +348,7 @@ class ConsumerMeteorologico:
                 logger.info("Datos inválidos guardados para análisis")
                 
         except Exception as e:
-            logger.error(f"Error guardando datos inválidos: {e}")
+            logger.error(f"Error guardando datos inválidos id_mensaje={datos.get('id_mensaje','N/A')}: {e}")
 
     def iniciar_consumer(self):
         """Iniciar el consumo de mensajes de RabbitMQ"""
@@ -357,11 +380,11 @@ class ConsumerMeteorologico:
         """Cerrar todas las conexiones"""
         if self.connection_rabbit and not self.connection_rabbit.is_closed:
             self.connection_rabbit.close()
-            logger.info("🔌 Conexión RabbitMQ cerrada")
+            logger.info("Conexión RabbitMQ cerrada")
         
         if self.connection_db and not self.connection_db.closed:
             self.connection_db.close()
-            logger.info("🔌 Conexión PostgreSQL cerrada")
+            logger.info("Conexión PostgreSQL cerrada")
 
 if __name__ == "__main__":
     consumer = ConsumerMeteorologico()

@@ -26,6 +26,24 @@ services:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     restart: unless-stopped
 
+  grafana:
+    image: grafana/grafana:latest
+    container_name: weather_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=password
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/etc/grafana/dashboards
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+
   producer:
     build: ./producer
     container_name: weather_producer
@@ -41,6 +59,16 @@ services:
       - postgres
     restart: unless-stopped
 
+  api:
+    build: ./api
+    container_name: weather_api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
 volumes:
   rabbitmq_data:
   postgres_data:
+  grafana_data:
