@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS registros_meteorologicos (
     -- Identificacion de la estacion
     id_estacion VARCHAR(50) NOT NULL,
     nombre_estacion VARCHAR(100),
+    ubicacion VARCHAR(100),
     
     -- Datos meteorologicos principales
     temperatura DECIMAL(4,2),          -- Temperatura en grados centigrados (-99.99 a 99.99)
@@ -51,7 +52,7 @@ CREATE TABLE IF NOT EXISTS registros_meteorologicos (
 CREATE TABLE IF NOT EXISTS estaciones_meteorologicas (
     id_estacion VARCHAR(50) PRIMARY KEY,
     nombre_estacion VARCHAR(100) NOT NULL,
-    nombre_ubicacion VARCHAR(100),
+    ubicacion VARCHAR(100),
     latitud DECIMAL(9,6),             -- Latitud geografica
     longitud DECIMAL(9,6),            -- Longitud geografica
     altitud DECIMAL(6,2),             -- Altitud en metros
@@ -145,7 +146,7 @@ CREATE OR REPLACE VIEW alertas_pendientes AS
 SELECT 
     a.*,
     e.nombre_estacion,
-    e.nombre_ubicacion
+    e.ubicacion
 FROM alertas_meteorologicas a
 JOIN estaciones_meteorologicas e ON a.id_estacion = e.id_estacion
 WHERE a.esta_confirmada = FALSE

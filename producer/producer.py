@@ -12,6 +12,10 @@ import pika
 from pika.exceptions import AMQPConnectionError, AMQPError
 import math
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def configurar_logging():
     """Configurar logging"""
@@ -58,11 +62,11 @@ class ProductorMeteorologico:
         ]
         
         # Configuración RabbitMQ
-        self.rabbitmq_host = "rabbitmq"
-        self.rabbitmq_port = 5672
-        self.rabbitmq_user = "admin"
-        self.rabbitmq_pass = "password"
-        
+        self.rabbitmq_host = os.getenv("RABBITMQ_HOST", "rabbitmq")
+        self.rabbitmq_port = int(os.getenv("RABBITMQ_PORT", 5672))
+        self.rabbitmq_user = os.getenv("RABBITMQ_USER", "admin")
+        self.rabbitmq_pass = os.getenv("RABBITMQ_PASS", "password")
+
         # Configuración del exchange
         self.exchange_name = 'exchange_meteorologico'
         self.exchange_type = 'direct'
