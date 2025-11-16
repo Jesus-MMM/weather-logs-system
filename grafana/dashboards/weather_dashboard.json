@@ -1,124 +1,163 @@
 {
-  "dashboard": {
-    "id": null,
-    "title": "Dashboard Meteorológico - Tiempo Real",
-    "tags": ["meteorologia", "tiempo-real"],
-    "timezone": "browser",
-    "panels": [
-      {
-        "id": 1,
-        "title": "Temperatura por Estación",
-        "type": "timeseries",
-        "targets": [
-          {
-            "datasource": "PostgreSQL",
-            "rawSql": "SELECT fecha_medicion as time, id_estacion as metric, temperatura FROM registros_meteorologicos WHERE calidad_dato = 'valido' AND fecha_medicion >= NOW() - INTERVAL '1 day' ORDER BY time",
-            "format": "time_series"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "celsius",
-            "decimals": 1
-          }
-        },
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
-      },
-      {
-        "id": 2,
-        "title": "Humedad por Estación",
-        "type": "timeseries",
-        "targets": [
-          {
-            "datasource": "PostgreSQL",
-            "rawSql": "SELECT fecha_medicion as time, id_estacion as metric, humedad FROM registros_meteorologicos WHERE calidad_dato = 'valido' AND fecha_medicion >= NOW() - INTERVAL '1 day' ORDER BY time",
-            "format": "time_series"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percent",
-            "min": 0,
-            "max": 100
-          }
-        },
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
-      },
-      {
-        "id": 3,
-        "title": "Resumen de Estaciones",
-        "type": "stat",
-        "targets": [
-          {
-            "datasource": "PostgreSQL",
-            "rawSql": "SELECT COUNT(DISTINCT id_estacion) as total_estaciones FROM registros_meteorologicos WHERE fecha_medicion >= NOW() - INTERVAL '1 hour'",
-            "format": "table"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "palette-classic"},
-            "decimals": 0
-          }
-        },
-        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 8}
-      },
-      {
-        "id": 4,
-        "title": "Registros Hoy",
-        "type": "stat",
-        "targets": [
-          {
-            "datasource": "PostgreSQL",
-            "rawSql": "SELECT COUNT(*) as total_registros FROM registros_meteorologicos WHERE DATE(fecha_medicion) = CURRENT_DATE",
-            "format": "table"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "palette-classic"},
-            "decimals": 0
-          }
-        },
-        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 8}
-      },
-      {
-        "id": 5,
-        "title": "Condiciones Meteorológicas",
-        "type": "piechart",
-        "targets": [
-          {
-            "datasource": "PostgreSQL",
-            "rawSql": "SELECT condicion_meteorologica, COUNT(*) as count FROM registros_meteorologicos WHERE fecha_medicion >= NOW() - INTERVAL '6 hours' AND condicion_meteorologica IS NOT NULL GROUP BY condicion_meteorologica",
-            "format": "table"
-          }
-        ],
-        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 12}
-      },
-      {
-        "id": 6,
-        "title": "Velocidad del Viento",
-        "type": "timeseries",
-        "targets": [
-          {
-            "datasource": "PostgreSQL",
-            "rawSql": "SELECT fecha_medicion as time, id_estacion as metric, velocidad_viento FROM registros_meteorologicos WHERE calidad_dato = 'valido' AND fecha_medicion >= NOW() - INTERVAL '1 day' ORDER BY time",
-            "format": "time_series"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "km/h",
-            "decimals": 1
-          }
-        },
-        "gridPos": {"h": 8, "w": 16, "x": 8, "y": 12}
-      }
-    ],
-    "time": {
-      "from": "now-6h",
-      "to": "now"
+  "__inputs": [
+    {
+      "name": "DS_POSTGRESQL",
+      "label": "PostgreSQL",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "grafana-postgresql-datasource",
+      "pluginName": "PostgreSQL"
+    }
+  ],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "panel",
+      "id": "gauge",
+      "name": "Gauge",
+      "version": ""
     },
-    "refresh": "10s"
-  }
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.2.1"
+    },
+    {
+      "type": "datasource",
+      "id": "grafana-postgresql-datasource",
+      "name": "PostgreSQL",
+      "version": "12.2.1"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "datasource": {
+        "type": "postgresql",
+        "uid": "PostgreSQL"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 85
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.2.1",
+      "targets": [
+        {
+          "dataset": "weather_logs",
+          "datasource": {
+            "type": "postgresql",
+            "uid": "PostgreSQL"
+          },
+          "editorMode": "builder",
+          "format": "table",
+          "rawSql": "SELECT AVG(temperatura) FROM registros_meteorologicos LIMIT 50 ",
+          "refId": "A",
+          "sql": {
+            "columns": [
+              {
+                "name": "AVG",
+                "parameters": [
+                  {
+                    "name": "temperatura",
+                    "type": "functionParameter"
+                  }
+                ],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
+          "table": "registros_meteorologicos"
+        }
+      ],
+      "title": "Promedio de temperatura",
+      "type": "gauge"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 42,
+  "tags": [],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Valor ",
+  "uid": "adcvqz7",
+  "version": 1,
+  "weekStart": ""
 }

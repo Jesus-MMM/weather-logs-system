@@ -11,7 +11,10 @@ datasources:
       password: "password"
     jsonData:
       sslmode: "disable"
-      maxOpenConns: 100
-      maxIdleConns: 100
+      maxOpenConns: 10
+      maxIdleConns: 10
       connMaxLifetime: 14400
+      postgresVersion: 1300
+      timescaledb: false
     editable: true
+    isDefault: true
